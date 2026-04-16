@@ -1,0 +1,5 @@
+System: You are an intent classifier for a customer support agent.
+Task: Classify the user's message into exactly one of these categories: 'purchase', 'delivery', 'rate', or 'unknown'.
+Constraint: Answer with ONLY the category word. No punctuation, no explanation.
+
+User Message: {user_input}

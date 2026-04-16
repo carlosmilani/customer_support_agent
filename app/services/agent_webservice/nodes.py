@@ -1,53 +1,46 @@
-# app/services/agent_webservice/nodes.py
-import asyncio
+import os
+from langchain_groq import ChatGroq
 from app.services.agent_webservice.state import AgentState
+from dotenv import load_dotenv
+import asyncio
 
-# Simulating the function used to load prompt templates from files
-def load_prompt_template(name: str) -> str:
-    """
-    In a production environment, this would read from the templates folder:
-    with open(f"app/services/agent_webservice/templates/{name}.txt", "r") as f:
+load_dotenv()
+api_key = os.environ.get("GROQ_API_KEY")
+llm = ChatGroq(model_name="llama-3.1-8b-instant", groq_api_key=api_key, temperature=0)
+
+def load_prompt_template(filename: str) -> str:
+    """Reads a prompt template from the templates directory."""
+    # Getting the absolute path to the templates folder
+    base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, "templates", filename)
+    
+    with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
-    """
-    return "You are an assistant. The customer said: {user_input}. Route: {route}."
 
 async def router_node(state: AgentState) -> dict:
-    """
-    Classifies the user's intent based on keywords.
-    In a real scenario, this would be a call to an LLM.
-    """
-    print("[Node: Router] Classifying intent...")
-    await asyncio.sleep(0.5) # Simulating network latency with AI API
+    print("[Node: Router] Classifying intent with LLM...")
     
-    text = state["input"].lower()
+    # Load and format the prompt
+    template = load_prompt_template("router.txt")
+    prompt = template.format(user_input=state["input"])
     
-    # Intent classification logic
-    if "buy" in text or "price" in text or "purchase" in text:
-        return {"route": "purchase"}
-    elif "delivery" in text or "track" in text or "shipping" in text:
-        return {"route": "delivery"}
-    elif "rate" in text or "feedback" in text or "score" in text:
-        return {"route": "rate"}
+    # AI Call
+    response = await llm.ainvoke(prompt)
+    route = response.content.lower().strip()
     
-    return {"route": "unknown"}
+    return {"route": route}
 
 async def respond_node(state: AgentState) -> dict:
-    """
-    Generates a response based on the identified route.
-    """
-    route = state["route"]
-    print(f"[Node: Respond] Generating response for route: {route}...")
-    await asyncio.sleep(1.0) # Simulating LLM text generation
+    print(f"[Node: Respond] Generating response for route: {state['route']}...")
     
-    # Simulated standard responses
-    if route == "purchase":
-        # In a real case, the LLM would extract the specific product from the text
-        response = "We have Product X in stock for only $99.90. Would you like to place an order?"
-    elif route == "delivery":
-        response = "I checked your order: it is on its way and will arrive tomorrow by 6 PM!"
-    elif route == "rate":
-        response = "We appreciate your feedback! What rating (0 to 10) would you give the product?"
-    else:
-        response = "I'm sorry, I couldn't understand your request. Could you please rephrase it?"
-        
-    return {"response": response}
+    # Load and format the prompt
+    template = load_prompt_template("respond.txt")
+    prompt = template.format(
+        user_input=state["input"], 
+        route=state["route"]
+    )
+    
+    # AI Call
+    response = await llm.ainvoke(prompt)
+    
+    return {"response": response.content}

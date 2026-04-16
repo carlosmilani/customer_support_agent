@@ -3,7 +3,7 @@ import asyncio
 import aiosqlite
 from datetime import datetime
 
-# Updated database name to English
+# Database name
 DB_PATH = "support_agent.db"
 
 class FeedbackRepository:
