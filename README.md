@@ -22,11 +22,23 @@ An asynchronous AI Agent built with **FastAPI**, **LangGraph**, and **SQLite**. 
    uv sync
    ```
 
-3. **Configure environment:**
+3. **Activate the Virtual Environment:**
+
+   **On Windows (PowerShell):**
+   ```bash
+   .venv\Scripts\activate
+   ```
+
+   **On Linux / macOS:**
+   ```bash
+   source .venv/bin/activate
+   ```
+
+4. **Configure environment:**
 - Create a `.env` file based on `.env.example`.
 - Add your `GROQ_API_KEY`.
 
-4. **Start the server**
+5. **Start the server**
    ```bash
    python -m app.main
    ```
